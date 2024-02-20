@@ -1,0 +1,303 @@
+---
+title: "Homework3"
+author: "Brian Pham, bp26834, https://github.com/bpham010/SDS315-Homework4"
+date: "2024-02-14"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=6, warning=FALSE, tidy=TRUE, message = FALSE, tidy.opts=list(width.cutoff=60))
+
+```
+
+
+# Problem 1
+
+```{r, echo = FALSE, results = "hide"}
+
+library(readr)
+library(mosaic)
+library(ggplot2)
+library(tidyverse)
+
+
+gasprices <- read_csv("~/SDS315/Homework4/gasprices.csv")
+
+# competition = gasprices %>%
+#   group_by(Competitors, Name, Price) %>%
+
+# Find mean diffs
+# calculate confidence intervals (requires resampling do 10000)
+# All thats needed to ansewr 
+
+
+# theory 1
+mean(Price ~ Competitors, data = gasprices)
+diffmean(Price ~ Competitors, data = gasprices)
+
+bootPriceCompetition = do(20000)*diffmean(Price ~ Competitors, data = resample(gasprices))
+confint(bootPriceCompetition, level = 0.95)
+
+```
+
+### Theory A)
+
+One of the many theories in the variation in prices between gas stations is that gas stations charge more if they lack direct competition in sight. In Austin, gas stations with direct competiton had an average price of 1.85 while those that didn't had an average price of 1.87. The difference in price between gas stations with and without direct competition is in between -0.05 and 0.008 so the result is not statistically significant. Therefore, we are not certain that gas stations charge more if they lack direct competition. 
+
+
+
+
+
+### Theory B)
+
+```{r, echo = FALSE, results = "hide"}
+# theory 2
+lmRichAreas = lm(Price ~ Income, data = gasprices)
+coef(lmRichAreas)
+
+ 
+bootRichAreas = do(10000)*lm(Price ~ Income, data = resample(gasprices))
+confint(bootRichAreas, level = .95)
+#ggplot(data = lmRichAreas) + geom_point(aes(x=Income, y = Price))
+
+```
+
+The second theory is that gas stations charge higher prices in richer areas. There is a slight correlation between income and gas prices as the the area income tends to increase with increasing gas prices.  We are 95% confident that the change of slope of income and gas prices is between 6.63 and 1.77. Although there isn't enough data since this dataset only deals with gas stations in Austin, gas stations may charge more when located in higher income areas. 
+
+
+
+### Theory C
+
+```{r, echo = FALSE, results = "hide"}
+
+
+mean(Price ~ Stoplight, data = gasprices)
+diffmean(Price ~ Stoplight, data = gasprices)
+
+bootPriceStoplight = do(10000)*diffmean(Price ~ Stoplight, data = resample(gasprices))
+confint(bootPriceStoplight, level = 0.95)
+
+```
+
+The third theory is that gas stations at stoplights charge more than gas stations located away from stoplights. At first glance, it seems that gas stations away from stoplights charge more by about .003, we are 95% sure that they charge between -0.02 and .03 which means that this result is not statistically significant. Therefore, gas stations at stoplights are not that likely to charge more than those away. 
+
+
+
+### Theory D
+
+```{r, echo = FALSE, results='hide'}
+# theory 4
+
+mean(Price ~ Highway, data = gasprices)
+diffmean(Price ~ Highway, data = gasprices)
+
+bootPriceHighway = do(10000)*diffmean(Price ~ Highway, data = resample(gasprices))
+  confint(bootPriceHighway, level = 0.95)
+
+
+
+```
+
+Another popular theory is that gas stations with direct highway access charge more. This appears to make sense since gas stations in Austin, on average, charged between .009 dollars and .08 dollars with 95% confidence which is statistically significant at the 5% level. Therefore, gas stations on average, charged approximately 4 cents more than gas stations that are located away from the highway. 
+
+
+
+
+
+
+
+### Theory E)
+
+```{r, echo = FALSE, results = "hide"}
+
+shells = gasprices %>%
+  mutate(isShell = (Name == "Shell"))
+
+prop(Price ~ isShell, data = shells)
+bootShells = do(10000)*prop(Price ~ isShell, data = resample(shells))
+confint(bootShells, level = .95)
+
+
+```
+
+The last theory on gas station prices is whether or not shell stations charge more than non-shell stations. However, the results do not appear to be statistically significant as we are 95% confident that shell charges between 0 and .11 cents compared to non-shell gas stations. Therefore, although it could be true, it is not certain that shell charges more than other gas stations. 
+
+
+
+# Problem 2
+
+
+```{r, echo = FALSE, results = "hide"}
+
+library(readr)
+library(tidyverse)
+library(mosaic)
+
+sclass <- read_csv("~/SDS315/Homework4/sclass.csv")
+
+sclassA = sclass %>%
+  filter(year == 2011) %>%
+  filter(trim == "63 AMG")
+
+
+
+mean(~mileage, data = sclassA)
+
+sclassABoot = do(10000)*mean(~mileage, data = resample(sclassA))
+confint(sclassABoot, level = 0.95)
+
+```
+### Part A:
+
+We are 95% confident that for cars from the year 2011 with "63 AMG" trims have an average mileage between 26266.8 and 31819.92 miles. 
+
+
+
+
+```{r, echo = FALSE, results = "hide"}
+
+sclassB = sclass %>%
+  filter(year == 2014) %>%
+  filter(trim == "550") %>%
+  mutate(isBlack = (color == "Black"))
+
+prop(~isBlack, data = sclassB)
+bootsclassB = do(10000)*prop(~isBlack, data = resample(sclassB))
+confint(bootsclassB, level = 0.95)
+
+```
+
+### Part B:
+
+For all 2014 S-class 550s, we are 95% confident that between 41% and 45% of them were painted black. 
+
+
+# Problem 3
+
+```{r, echo = FALSE, results = "hide"}
+
+# Part A
+library(readr)
+library(tidyverse)
+library(mosaic)
+
+nbc_pilotsurvey <- read_csv("~/SDS315/Homework4/nbc_pilotsurvey.csv")
+
+nbcA = nbc_pilotsurvey %>%
+  filter(Show == "Living with Ed" | Show == "My Name is Earl")
+
+
+mean(Q1_Happy ~ Show, data= nbcA)
+diffmean(Q1_Happy ~ Show, data = nbcA)
+
+nbcABoot = do(10000)*diffmean(Q1_Happy ~ Show, data = resample(nbcA))
+confint(nbcABoot, level = 0.95)
+
+```
+
+### Part A)
+
+1). Considering the shows "Living with Ed" and "My Name is Earl", we are trying to find the show that makes people happier. 
+
+2). First off, the filter function was used to limit the dataset to the chosen shows. Diffmean was used to get a general idea of the difference happiness scores from the shows. However, to account for statistical uncertainty, the bootstrap was used to create 10,000 monto carlo simulations which was used to construct a 95% confidence interval. This was done using the diffmean function along with the resample function and the confint function to approximate the amount of statistical uncertainty in the original estimates.
+
+3). The average difference between the happiness scores is 0.14 with "Living with Ed" scoring just higher than "My Name is Earl". However, the 95% confidence interval is between -.3 and 0.1, which renders our estimates not statistically significant. 
+
+4). To conclude, although it may look like people are happier watching the show "Living with Ed" by a value of 0.14, due to statistical uncertainty, the estimate may differ from the actual happiness value offered by the data set. 
+
+
+
+```{r, echo = FALSE, results = "hide"}
+# Part B
+
+nbcB = nbc_pilotsurvey %>%
+  filter(Show == "The Biggest Loser" | Show == "The Apprentice: Los Angeles")
+
+diffmean(Q1_Annoyed ~ Show, data = nbcB)
+mean(Q1_Annoyed ~ Show, data = nbcB)
+nbcBBoot = do(10000)*diffmean(Q1_Annoyed ~ Show, data = resample(nbcB))
+confint(nbcBBoot, level = 0.95)
+
+```
+
+### Part B
+
+1). Considering the shows "The Biggest Loser" and "The Apprentice: Los Angeles", we are trying to find the show that produces a higher annoyed responds from viewers. 
+
+2). We started off by filtering the dataset to our selected shows using the filter function. Like earlier, the mean and diffmean functions were used to find an estimate between the annoyed values for the two shows. The bootstrap was then used with the diffmean and resample functions to construct 10000 monto carlo simulations in the two shows. Confint was then used to compute the 95% confidence inteval to account for statistical uncertainty. 
+
+3). At first, it was found that "The Apprentice: Los Angeles" produced a higher average annoyed score by 0.27. We are 95% confident that it is higher by between the values of 0.01 and 0.51. Since the range does not include 0, this is statistically significant. 
+
+4). There is evidence that "The Apprentice: Los Angeles" produces a higher score between the values of 0.01 and 0.51 over "The Biggest Loser". Although the results are statistically significant, we are only 95% confident that this is the case. 
+
+
+```{r, echo = FALSE, results = "hide"}
+
+# Part C
+
+
+nbcC = nbc_pilotsurvey %>%
+  filter(Show == "Dancing with the Stars") %>%
+  mutate(balling = (Q2_Confusing >= 4))
+
+
+prop(~balling, data = nbcC)
+
+nbcCBoot = do(10000)*prop(~balling, data = resample(nbcC))
+confint(nbcCBoot, level = .95)
+
+
+```
+
+### Part C)
+
+1). Considering the show "Dancing with the Stars", we are trying to find evidence that viewers agreed that the show was confusing. 
+
+2). We started by filtering the dataset to contain only the "Dancing with the Stars" and created a variable to track whether or not the confusing question was answered with a high score with the filter and mutate functions respectively. The prop function was used to see at a glance the proportion of people who found the show confusing. The bootstrap was used using to make 10,000 monto carlo simulations using the prop, resample, and confint to construct a 95% confidence interval to account for statistical uncertainty. 
+
+3). Based on the responses by viewers, we are 95% confident that between 3% and 11% would give a response of 4 or higher to the Q2_Confusing for the show dancing with the stars. 
+
+4). Although the results for the show "Dancing with the Stars" are statistically significant, I believe that between 3% and 11% of viewers rating the show "confusing" is not enough to determine that the show is confusing overall for most viewers. 
+
+
+# Problem 4
+
+```{r, echo = FALSE, results = "hide"}
+
+library(readr)
+library(mosaic)
+
+ebay <- read_csv("~/SDS315/Homework4/ebay.csv")
+
+
+diffmean(rev_ratio ~ adwords_pause, data = ebay)
+mean(rev_ratio ~ adwords_pause, data = ebay)
+ebayBoot = do(10000)*diffmean(rev_ratio ~ adwords_pause, data = resample(ebay))
+confint(ebayBoot, level = .95)
+
+# the rev ratio is already in the dataset???
+# no need to mutate?
+
+
+```
+
+1). We are trying to find out whether or not ebay using paid searches on Google Adwords, yields them higher revenue ratios. 
+
+
+2). To start off, the mean and diffmean functions were used to get a general idea of the differences between the revenues in the treatment and control groups. The bootstrap was then used to simulate 10,000 monto carlo simulations to account for uncertainties using the diffmean, resample, and do functions from the mosaic library. A 95% confidence interval was then constructed using the confint function. 
+
+3). At first, it was found that when ebay didn't use google's paid search, they yielded 5% less than the areas where they used google's paid search service. We are 95% confident that they yield between 1% and 9% less when not using Google's Adwords which is statistically significant.
+
+4). Based off our analysis, it appeared that ebay using Google's paid search service did indeed yield them higher revenue. With a 95% confidence interval, ebay likely yields between 1 to 9 percent more revenue when using Google Adwords suggesting that the service likely produces higher revenue ratios for ebay. 
+
+
+
+
+
+
+
+
+
+
